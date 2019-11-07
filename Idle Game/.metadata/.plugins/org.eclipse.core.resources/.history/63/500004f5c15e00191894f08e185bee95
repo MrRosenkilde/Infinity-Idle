@@ -1,0 +1,37 @@
+package presentation;
+
+
+import java.awt.Event;
+
+import domain.Item;
+import domain.State;
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler<KeyEvent>{
+	private Logic logic;
+	private Presentation state;
+	public ShortcutKeys(Logic logic,Presentation presentation) {
+		this.logic = logic;
+		this.state = presentation;
+	}
+	@Override
+	public void handle(KeyEvent event) {
+		System.out.println(event.getCode());
+		switch(event.getCode()) {
+		
+		case DIGIT1 :{
+			BuyButton btn = state.itemDisplays().get(0).BuyButton();
+			Item item = state.itemDisplays().get(0).item();
+			logic.BuyItem(item, btn.purchasesAmount());
+			break;
+		}
+		default:{
+			
+		}
+		}
+	}
+}

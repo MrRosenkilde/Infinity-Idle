@@ -1,0 +1,12 @@
+f(x) = b * x ^a =>
+f(x) / b = x ^a =>
+
+( f(x) / b ) ^ (1/a) = x
+
+log ( f(x) / b ) = log(x) * a  
+
+
+
+f(x) = b* x^2 isolate x
+f(x) / b = x ^2 =>
+(f(x) / b) ^1/2 = x

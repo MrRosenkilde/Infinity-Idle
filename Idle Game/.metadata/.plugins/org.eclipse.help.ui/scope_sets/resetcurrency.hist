@@ -1,0 +1,4 @@
+#Sun Apr 14 15:46:49 CEST 2019
+__DEFAULT__=false
+org.eclipse.help.ui.localSearch.master=true
+expression=resetcurrency

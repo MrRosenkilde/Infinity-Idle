@@ -1,0 +1,105 @@
+package domain;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.Observable;
+
+import logic.ItemLogicI;
+import utill.BDCalc;
+import utill.BDLib;
+
+public class Item extends Observable implements Purchaseable{
+	private BigDecimal incomeInterval,
+		basePrice,
+		speedMultiplier,
+		baseIncome,
+		priceIncrease,
+		income;
+	
+	public static BigDecimal priceScale = new BigDecimal(10.5),
+		incomeScale = new BigDecimal(2.5),
+		priceBase = new BigDecimal(5.19),
+		incomeBase = new BigDecimal(0.1);
+	public Resource incomse;
+	private int amount;
+	private String name;
+	private ItemUpgrades upgrades;
+	private final int index;
+	private double progress;
+	public Item(int index) {
+		this.index = index;
+		this.amount = 0;
+		this.progress = 0;
+		this.speedMultiplier = BigDecimal.ONE;
+		income = BigDecimal.ZERO;
+		this.priceIncrease = new BigDecimal(1.15);
+		name = "Item " + (index +1);
+		this.upgrades = new ItemUpgrades(this);
+		this.basePrice = baseCost(index);
+		this.baseIncome = baseIncome(index);
+		this.incomeInterval = baseIncomeInterval(this);
+		
+	}
+	private BigDecimal baseCost(int index) {
+		return BDCalc.multiply
+				(
+					Item.priceBase,
+					BDCalc.pow(Item.priceScale, index)
+				);
+	}
+	private BigDecimal baseIncome(int index) {
+		return BDCalc.multiply(
+				Item.incomeBase,
+				BDCalc.pow(Item.incomeBase,index)
+			);
+	}
+	private BigDecimal baseIncomeInterval(Item i) {
+		// returns the sum of the numbers from 1 to index.
+		return BDCalc.multiply(
+				BDCalc.multiply(
+					new BigDecimal(i.index() +1),
+					BDCalc.divide(
+						new BigDecimal(i.index()),
+						BDLib.TWO
+					)
+					.add(BigDecimal.ONE)
+				), 
+				BDLib.THOUSAND );
+	}
+	public void incomeInterval(BigDecimal incomeInterval) {this.incomeInterval = incomeInterval;setChanged();}
+	public void amount(int amount) {this.amount = amount;setChanged();}
+	public void upgrades(ItemUpgrades upgrades) {this.upgrades = upgrades;setChanged();}
+	public void basePrice(BigDecimal basePrice) {this.basePrice = basePrice;setChanged();}
+	public void speedMultiplier(BigDecimal speedMultiplier) {this.speedMultiplier = speedMultiplier;setChanged();}
+	public void progess(double progress) {this.progress = progress;setChanged();}
+	public void name(String name) {this.name = name;setChanged();}
+	public void baseIncome(BigDecimal baseIncome) {this.baseIncome = baseIncome;setChanged();}
+	public void progress(double progress) {this.progress = progress;setChanged();}
+	public void priceIncrease(BigDecimal priceIncrease) {this.priceIncrease = priceIncrease;setChanged();}
+	public void income(BigDecimal income) {this.income = income; setChanged();}
+	public BigDecimal priceIncrease() {return this.priceIncrease;}
+	public BigDecimal incomeInterval() {return this.incomeInterval;}
+	public ItemUpgrades upgrades() {return this.upgrades;}
+	public BigDecimal basePrice() {return this.basePrice;}
+	public BigDecimal speedMultiplier() {return this.speedMultiplier;}
+	public String name() {return this.name;}
+	public BigDecimal baseIncome() {return this.baseIncome;}
+	public BigDecimal income() {return this.income;}
+	public double progress() {return this.progress;}
+	public int index() {return this.index;}
+
+	//purchaseable interface
+	@Override
+	public Resource baseCost() {return new Score(this.basePrice);}
+	@Override
+	public int amount() {return this.amount; }
+	@Override
+	public int maxPurchase() {
+		return -1;
+	}
+	@Override
+	public ResourceType paymentType() {
+		return ResourceType.SCORE;
+	}
+
+}

@@ -1,0 +1,76 @@
+1
+8
+27
+81
+
+
+
+
+
+
+
+
+
+
+
+/***************************************************************
+*																*
+* EVERYTHING UNDER THIS POINT IS GARBAGE FROM ANOTHER FORMULA	*
+*																*
+****************************************************************/
+1^3 + 2^3 + 3^3 .. 8^3 /= (1+2+3..8)^2
+
+
+
+1^3 + 2^3 + 3^3= ( (3 * (3 + 1) ) / 2 ) ^2 = ( 3*4 / 2) ^2 = ( 12 / 2) ^2 = 6 ^2 = 36 = 1 + 8 +27
+
+so sum(1^3 to (1+n)^3 = ( n*(n+1) /2) ^2 
+
+the calculated price for a resetCurrency is = x^3 * 10^12
+set 10^12 = b
+is b*1^3 + 2^3*b + 3^3*b =  ( ( n*(n+1) /2) ^2 ) * b
+simplify left hand by moving b outside of a paranthesis
+
+b* (1^3 + 2^3 + 3^3 ) = ( ( n*(n+1) /2) ^2 ) * b
+
+divide both sides with b
+
+(1^3 + 2^3 + 3^3 ) = (((n* (n+1))/2)^2)
+now we have the same formula, so ( ( n*(n+1) /2) ^2 ) * b works for summarizing the price formula for resetcurrency
+
+so ( ( n*(n+1) /2) ^2 ) is the accumulated price formula.
+i'm gonna name it pf(x)
+according to mathway.com/Algebra the fomula can be simplified to:
+n^4 / 2 + n^3 / 2 + n^2 / 4 
+
+if we already have items and wanna find the price we can say
+pf(newAmount+owned) - pf(owned)
+
+assume we have 2 resetCurrency and wanna buy two more
+the price is (3^3 + 4^3)*b
+the pf(4) = (1^3 + 2^3 + 3^3 + 4^4)*b subtract (1^3 + 2^3)*b from that gives us (3^3 + 4^4)*b
+so pf(2) if we already have two is pf(owned+wanted) - pf(owned)
+
+
+to calculate the affordable amount
+we will need to isolate n given an input:
+
+y = (n^2* (n+1)^2)/2)*b  isolate n
+divide with b =>
+y/b = n^2*(n+1)^2)/4
+multiply with 4 =>
+(y/b)*4 = n^2 * (n+1)^2
+sqrt( (y/b)* 4 ) = (n^2 * (n+1) ^2 ) ^1/2 =>
+sqrt( (y/b) * 4) = n^2 * (n+1) =>
+sqrt( (y/b) * 4) = n^2 + n 
+sqrt( (y/b) * 4) = n^2 + n  
+sqrt( 4y / b ) = n^2 + n
+
+
+( 4y / b)^1/2 = n^2 + n^1
+according to this thing: https://www.mathway.com/Algebra
+
+it's n = ((4*y*b^3)^(1/4))/b
+ 
+
+

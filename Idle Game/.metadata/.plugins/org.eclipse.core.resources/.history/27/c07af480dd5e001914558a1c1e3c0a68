@@ -1,0 +1,101 @@
+package presentation;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+
+import domain.ResetCurrency;
+import domain.Resource;
+import domain.State;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import logic.Logic;
+
+public class ResetCurrencyDisplay extends GridPane implements Observer {
+	State state;
+	ResetCurrency resetCurrency;
+	ComboBox<Integer> comboBox;
+	Label affordableAmountText, ownedText;
+	Text affordableAmount, owned;
+	Button resetButton;
+	ResetCurrencyProgressBar progressBar;
+	Observer updateOptions;
+	private Logic logic;
+	public ResetCurrencyDisplay(State state, Logic logic,EventHandler<ActionEvent> resetEvent) {
+		this.state = state;
+		this.logic = logic;
+		comboBox = new ComboBox<Integer>();
+		progressBar = new ResetCurrencyProgressBar(state, logic);
+		affordableAmountText = new Label("Affordable: ");
+		affordableAmount = new Text("");
+		ownedText = new Label("Current amount: ");
+		owned = new Text(Formatter.ScientificNotation(state.getResetCurrency(0).val()));
+		StringProperty tier = new SimpleStringProperty();
+		tier.bind(comboBox.getSelectionModel().selectedItemProperty().asString());
+		resetButton = new Button();
+		resetButton.textProperty().bind(new SimpleStringProperty("Reset tier ").concat( tier ) );
+		resetButton.setTooltip(new Tooltip(
+			"Resetting will reset all your items and upgrades"
+		));
+		resetButton.setAlignment(Pos.CENTER);
+		resetButton.setTextAlignment(TextAlignment.CENTER);
+		resetButton.setOnMouseClicked(e->{
+			resetEvent.handle(new ActionEvent());
+			logic.reset( comboBox.getValue() );
+		});
+		comboBox.setValue(0);
+		logic.addObserver(state.getResetCurrency(0), this);
+		logic.addObserver(state.statistics().totalScore(), this);
+		this.add(comboBox, 0, 0);
+		this.add(new HBox(affordableAmountText,affordableAmount), 0, 1);
+		this.add(new HBox(ownedText,owned), 0, 2);
+		this.add(progressBar, 0, 3);
+		this.add(resetButton, 0, 4);
+		this.getStyleClass().add("display");
+		
+		comboBox.getSelectionModel().selectedItemProperty().addListener((obs,old,newValue) ->{
+			logic.removeObserver(state.getResetCurrency(old), this);
+			logic.addObserver(state.getResetCurrency(newValue), this);
+			progressBar.tier(newValue);
+			ResetCurrencyDisplay.this.update(null, null);
+		});
+		update(null, null);
+		
+	}
+	public int currentResetIndex() {return comboBox.getValue();}
+	private void setAffordableAmount() {
+		affordableAmount.setText(
+				Formatter.ScientificNotation(
+					state.getResetCurrency(comboBox.getValue()).affordableAmount(state)
+					.setScale(0, BigDecimal.ROUND_DOWN)
+				)
+			);
+	}
+	
+	@Override
+	public void update(Observable arg0, Object arg1) {
+		setAffordableAmount();
+		owned.setText(Formatter.ScientificNotation( state.getResetCurrency(comboBox.getValue()) .val()) );
+		
+		ArrayList<Integer> tiers = new ArrayList<Integer>();
+		for(Integer i : state.resetCurrencies().keySet())
+			if(!comboBox.getItems().contains(i))
+				tiers.add(i);
+		comboBox.getItems().addAll(FXCollections.observableArrayList(tiers) );
+	}
+}

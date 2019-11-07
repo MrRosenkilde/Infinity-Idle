@@ -1,0 +1,28 @@
+
+the price formular is:
+y = basecost * (priceIncrease^(newAmount+amount) - priceIncrease^(amount) ) / priceIncrease-1
+
+to isolate newAmount, which is the purchaseAble amount, we do the following operations
+y / basecost = ( priceIncrease^(newAmount+amount) - priceIncrease^amount ) / priceIncrease -1
+=>
+(y / baseCost) * (priceIncrease -1) = priceIncrease^newAmount+amount - priceIncrease^amount
+=>
+(y / baseCost) * (priceIncrease -1) + priceIncrease^amount = priceIncrease^newAmount+amount
+=>
+(y / baseCost) * (priceIncrease -1) + priceIncrease^amount = priceIncrease^newAmount * priceIncrease ^amount
+=>
+(y / baseCost) * (priceIncrease -1) + priceIncrease^amount ) / priceIncrease^amount = priceIncrease^newAmount
+
+=> (see assignmentpoint source for this step)
+
+log-priceIncrease(
+ (y / baseCost) * (priceIncrease -1) + priceIncrease^amount ) / priceIncrease^amount
+) = newAmount
+=> (see giannistsakiris source for this step)
+log10(
+ (y / baseCost) * (priceIncrease -1) + priceIncrease^amount ) / priceIncrease^amount
+) / log10(priceIncrease) = newAmount
+
+sources:
+http://www.assignmentpoint.com/science/mathematic/convert-exponentials-logarithms.html
+https://www.giannistsakiris.com/2010/01/09/base-2-and-base-n-logarithm-calculation-in-java/

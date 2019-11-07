@@ -1,0 +1,12 @@
+package presentation;
+
+import java.beans.EventHandler;
+
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler{
+	private Logic logic;
+	public ShortcutKeys(Logic logic) {
+		this.logic = logic;
+	}
+}

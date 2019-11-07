@@ -1,0 +1,51 @@
+package presentation;
+
+
+import domain.Item;
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler<KeyEvent>{
+	private Logic logic;
+	private Presentation presentation;
+	private boolean appendMode;
+	private String s;
+	public ShortcutKeys(Logic logic,Presentation presentation) {
+		this.logic = logic;
+		this.presentation = presentation;
+		appendMode = false;
+		s = "";
+	}
+	@Override
+	public void handle(KeyEvent event) {
+		System.out.println("Code = " + event.getCode());
+		System.out.println("text = " + event.getText());
+		System.out.println("Unicode = " + event.getCharacter());
+		
+		if(event.isShiftDown()) {
+			System.out.println("shift is down");
+			if(event.getText().matches("[0-9]"))
+				s += event.getText();
+			System.out.println(s);
+		}
+		else if(event.getCode() == KeyCode.SHIFT) {
+			if(!s.isEmpty()) buyItem(Integer.parseInt(s));
+			s = "";
+		}
+		else if (event.getText().matches("[0-9]"))
+			buyItem(Integer.parseInt(event.getText()));
+		
+	}
+	private void buyItem(int itemIndex) {
+		if(presentation.itemDisplays().size() > itemIndex-1) {
+			System.out.println("buying item " + (itemIndex -1));
+			Item item = presentation.itemDisplays().get(itemIndex -1).item();
+			int purchaseAmount = presentation.itemDisplays().get(itemIndex -1).BuyButton().purchasesAmount();
+			logic.BuyItem(item, purchaseAmount);
+		}
+		else System.out.println("invalid itemIndex: " + itemIndex);
+		
+	}
+}

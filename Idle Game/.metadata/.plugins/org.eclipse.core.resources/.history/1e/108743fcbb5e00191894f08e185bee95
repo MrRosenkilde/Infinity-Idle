@@ -1,0 +1,65 @@
+package domain;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+
+import exceptions.IncompatibleTierException;
+import utill.BDCalc;
+import utill.BDLib;
+
+public class ResetCurrency extends Resource{
+	private int tier;
+	private BigDecimal spend;
+	public ResetCurrency(int tier,BigDecimal value) {
+		super(value,ResourceType.RESETCURRENCY);
+		this.tier = tier;
+		this.spend = BigDecimal.ZERO;
+	}
+	public ResetCurrency(int tier) {
+		super(BigDecimal.ZERO,ResourceType.RESETCURRENCY);
+		this.tier = tier;
+		this.spend = BigDecimal.ZERO;
+	}
+	public int tier() {return tier;}
+	public BigDecimal spend() {return this.spend;}
+	public void spend(BigDecimal spend) {this.spend = spend;}
+	public BigDecimal baseCost() {return BDLib.TRILLION;}
+	public void subtract(ResetCurrency rc) throws IncompatibleTierException{
+		if(rc.tier() != this.tier() ) throwIncomepatibleTierException(rc);
+		else this.val(
+			BDCalc.subtract(this.val(), rc.val())
+		);
+	}
+	public int compareTo(ResetCurrency rc) throws IncompatibleTierException {
+		if(this.tier() != rc.tier) throwIncomepatibleTierException(rc);
+		return this.val().compareTo(rc.val());
+	}
+	private void throwIncomepatibleTierException(ResetCurrency other) throws IncompatibleTierException{
+		throw new IncompatibleTierException("invalid operation for " + other + " and "+ this +" because of different tiers of reset currency");
+		
+	}
+	public Resource priceFor(BigDecimal amount) {
+		BigDecimal cost = BDCalc.subtract( 
+				priceForAbsolute(
+					BDCalc.add(
+						BDCalc.add(amount,this.val()),
+						spend
+					)
+				).val(),
+				priceForAbsolute(this.val()).val()
+		);
+		Resource payment = tier == 0 ? new Score(cost) : new ResetCurrency(tier -1,cost);
+		return payment;
+	}
+	public Resource priceForAbsolute(BigDecimal amount) {
+		BigDecimal cost = BDCalc.multiply(baseCost(), BDCalc.pow(amount, 3));
+		return tier == 0 ? new Score(cost) : new ResetCurrency(tier -1,cost);
+	}
+	public BigDecimal affordableAmount(State state) {
+//		( (4*y*b^3)^(1/4) ) / b
+//		see ResetCurrencyLogicNotes.txt for more info
+		
+		Resource payment = tier == 0 ? state.statistics().totalScore() : state.getResetCurrency(tier -1);
+		return BDCalc.nrt(BDCalc.divide(payment.val(), baseCost()),3).setScale(0, BigDecimal.ROUND_DOWN);
+	}
+}

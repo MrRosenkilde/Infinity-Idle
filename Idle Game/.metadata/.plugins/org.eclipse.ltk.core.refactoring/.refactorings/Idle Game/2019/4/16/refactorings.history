@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename field &apos;incomse&apos; in &apos;domain.Item&apos; to &apos;income&apos;&#x0D;&#x0A;- Original project: &apos;Idle Game&apos;&#x0D;&#x0A;- Original element: &apos;domain.Item.incomse&apos;&#x0D;&#x0A;- Renamed element: &apos;domain.Item.income&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" delegate="false" deprecate="false" description="Rename field &apos;incomse&apos;" flags="589830" getter="false" id="org.eclipse.jdt.ui.rename.field" input="/src&lt;domain{Item.java[Item^incomse" name="income" references="true" setter="false" stamp="1555496055184" textual="false" version="1.0"/>
+</session>

@@ -1,0 +1,40 @@
+package presentation;
+
+
+import domain.Item;
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyEvent;
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler<KeyEvent>{
+	private Logic logic;
+	private Presentation state;
+	private boolean appendMode;
+	public ShortcutKeys(Logic logic,Presentation presentation) {
+		this.logic = logic;
+		this.state = presentation;
+		appendMode = false;
+	}
+	@Override
+	public void handle(KeyEvent event) {
+		System.out.println("Code = " + event.getCode());
+		System.out.println("text = " + event.getText());
+		System.out.println("Unicode = " + event.getCharacter());
+		switch(event.getCode()) {
+		
+		case DIGIT1 :{
+			BuyButton btn = state.itemDisplays().get(0).BuyButton();
+			Item item = state.itemDisplays().get(0).item();
+			logic.BuyItem(item, btn.purchasesAmount());
+			break;
+		}
+		case SHIFT : {
+			appendMode = !appendMode;
+			break;
+		}
+		default:{
+			
+		}
+		}
+	}
+}

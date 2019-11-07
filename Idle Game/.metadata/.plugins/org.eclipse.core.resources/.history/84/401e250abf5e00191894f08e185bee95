@@ -1,0 +1,28 @@
+package presentation;
+
+
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler<KeyEvent>{
+	private Logic logic;
+	public ShortcutKeys(Logic logic) {
+		this.logic = logic;
+	}
+	@Override
+	public void handle(KeyEvent event) {
+		System.out.println(event);
+		switch(event.getCode()) {
+		
+		case DIGIT1 :{
+			
+			break;
+		}
+		default:{
+			
+		}
+		}
+	}
+}

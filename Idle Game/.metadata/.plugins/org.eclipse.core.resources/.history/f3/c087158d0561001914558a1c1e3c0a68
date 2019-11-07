@@ -1,0 +1,130 @@
+package presentation;
+
+import java.math.BigDecimal;
+import java.util.Observable;
+import java.util.Observer;
+
+import domain.ResetCurrency;
+import domain.ResourceType;
+import domain.State;
+import domain.Upgrade;
+import domain.globalUpgrades.AutoClicker;
+import domain.itemUpgrades.UnlockedUpgrade;
+import domain.itemUpgrades.UpgradeType;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import logic.Logic;
+import utill.ObservableValue;
+
+public class UpgradeDisplay extends GridPane{
+	Upgrade upgrade;
+	Label amountLabel,title;
+	Text amount;
+	BuyButton buyButton;
+	InfoButton info;
+	String tooltipText;
+	private Observer upgradeObserver,unlockedUpgradeObserver;
+	ObservableValue<Boolean> visible;
+	private Logic logic;
+	private State state;
+	private Observer startAutoClickerThread;
+	UpgradeDisplay(Upgrade upgrade,State state,Logic logic){
+		BorderPane bp = new BorderPane();
+		this.upgrade = upgrade;
+		this.logic = logic;
+		this.state = state;
+		this.amountLabel = new Label("Amount ");
+		this.amount = new Text(Formatter.ScientificNotation(new BigDecimal( upgrade.amount()) ));
+		this.title = new Label(upgrade.title());
+		this.info = new InfoButton();
+		info.setTooltip(new HackedTooltip(upgrade.description()));
+		title.setFont(new Font("Courier new",18));
+		if(upgrade.type() != UpgradeType.UNLOCKED)
+			buyButton = new BuyButton(upgrade,state.buyMode(),state.score(),logic,logic.purchasingLogic());
+		else buyButton = new BuyButton(upgrade,state.buyMode(),state.score(),logic,logic.unlockedPurchasingLogic((UnlockedUpgrade)upgrade) );
+		HBox amountBox = new HBox(amountLabel,amount);
+		VBox amountBoxBuyButton = new VBox(amountBox,buyButton);
+		BorderPane topBP = new BorderPane();
+		this.visible = new ObservableValue<Boolean>(this.upgrade.isUnlocked());
+		this.visible.notifyObservers();
+		buyButton.setStyle("-fx-min-width:125px");
+		
+		title.setAlignment(Pos.TOP_LEFT);
+		info.setAlignment(Pos.TOP_RIGHT);
+		amountBoxBuyButton.setAlignment(Pos.CENTER);
+		
+		topBP.setLeft(title);
+		topBP.setRight(info);
+		
+		bp.setTop(topBP);
+		bp.setCenter(amountBoxBuyButton);
+		
+		topBP.setPadding(new Insets(0,5,0,5));
+		amountBox.setPadding(new Insets(5));
+		buyButton.setPadding(new Insets(5));
+		this.add(bp, 0, 0);
+		this.getStyleClass().add("display");
+		this.visibleProperty().addListener(
+			(obs,old,newValue)->{
+				this.visible.val( newValue );
+				this.visible.notifyObservers();
+			}
+		);
+		upgradeObserver = (obs,obj) ->{
+			amount.setText( String.valueOf( upgrade.amount()) );
+			title.setText( upgrade.title() );
+			tooltipText = upgrade.description();
+		};
+		buyButton.setOnMouseClicked(e->{
+			logic.BuyUpgrade(upgrade, buyButton.purchasesAmount());
+		});
+		unlockedUpgradeObserver = (arg0,arg1) ->{
+			if(upgrade.isUnlocked() != this.isVisible() ) {
+				this.setVisible( upgrade.isUnlocked() );
+				upgrade.notifyObservers();
+			}
+		};
+		startAutoClickerThread = (obs,obj) ->{
+			AutoClicker acUpgrade = (AutoClicker)upgrade;
+			if(acUpgrade.isPurchased())
+				new AutoClickerThread(logic,acUpgrade).timeline().play();
+		};
+		
+		logic.addObserver(upgrade, upgradeObserver);
+		logic.addObserver(upgrade, buyButton);
+		if(upgrade.paymentType() == ResourceType.SCORE)
+			logic.addObserver(state.score(), buyButton);
+		else {
+			int paymentTier = ((ResetCurrency)upgrade.baseCost()).tier();
+			logic.addObserver(state.getResetCurrency(paymentTier), buyButton);
+		}
+		
+		//only set visibility observer for upgrades that can be locked or unlocked
+		
+		if(upgrade.type() == UpgradeType.GLOBALCLICK ||
+				upgrade.type() == UpgradeType.UNLOCKED ||
+				upgrade.type() == UpgradeType.AUTOCLICKER){ 
+			logic.addObserver(state.statistics(),unlockedUpgradeObserver);
+		}
+		if(upgrade.type() == UpgradeType.AUTOCLICKER)
+			logic.addObserver(upgrade, startAutoClickerThread);
+		this.setVisible(upgrade.isUnlocked());
+	}
+	BuyButton buyButton() {return buyButton;}
+	Upgrade upgrade() {return upgrade;}
+	public void dispose() {
+		logic.removeObserver(upgrade, upgradeObserver);
+		logic.removeObserver(upgrade, buyButton);
+		logic.removeObserver(state.score(),buyButton);
+		if(upgrade.type() == UpgradeType.UNLOCKED)
+			logic.removeObserver(state.statistics(), unlockedUpgradeObserver);
+			
+	}
+}

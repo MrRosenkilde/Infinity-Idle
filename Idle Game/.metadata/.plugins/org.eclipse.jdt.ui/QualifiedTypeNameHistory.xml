@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.beans.EventHandler"/>
+<fullyQualifiedTypeName name="javafx.event.EventHandler"/>
+<fullyQualifiedTypeName name="javafx.scene.input.KeyEvent"/>
+<fullyQualifiedTypeName name="domain.State"/>
+<fullyQualifiedTypeName name="java.awt.Event"/>
+<fullyQualifiedTypeName name="javafx.scene.input.MouseEvent"/>
+<fullyQualifiedTypeName name="javafx.scene.input.KeyCode"/>
+<fullyQualifiedTypeName name="domain.Upgrade"/>
+<fullyQualifiedTypeName name="java.awt.event.ActionEvent"/>
+<fullyQualifiedTypeName name="javafx.event.ActionEvent"/>
+<fullyQualifiedTypeName name="utill.BDLib"/>
+<fullyQualifiedTypeName name="javafx.beans.property.SimpleLongProperty"/>
+<fullyQualifiedTypeName name="javafx.beans.property.LongProperty"/>
+<fullyQualifiedTypeName name="logic.ItemLogicI"/>
+<fullyQualifiedTypeName name="domain.Item"/>
+<fullyQualifiedTypeName name="logic.Logic"/>
+<fullyQualifiedTypeName name="javafx.scene.layout.GridPane"/>
+<fullyQualifiedTypeName name="javafx.geometry.Pos"/>
+<fullyQualifiedTypeName name="java.awt.Insets"/>
+<fullyQualifiedTypeName name="javafx.geometry.Insets"/>
+</qualifiedTypeNameHistroy>

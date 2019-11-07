@@ -1,0 +1,45 @@
+package presentation;
+
+
+import domain.Item;
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import logic.Logic;
+
+public class ShortcutKeys implements EventHandler<KeyEvent>{
+	private Logic logic;
+	private Presentation state;
+	private boolean appendMode;
+	private String s;
+	public ShortcutKeys(Logic logic,Presentation presentation) {
+		this.logic = logic;
+		this.state = presentation;
+		appendMode = false;
+		s = "";
+	}
+	@Override
+	public void handle(KeyEvent event) {
+		System.out.println("Code = " + event.getCode());
+		System.out.println("text = " + event.getText());
+		System.out.println("Unicode = " + event.getCharacter());
+		
+		if(event.isShiftDown()) {
+			if(event.getText().matches("[0-9]"))
+				s += event.getText();
+			System.out.println("shift is down");
+			System.out.println(s);
+		}
+		else if(event.getCode() == KeyCode.SHIFT) {
+			buyItem(Integer.parseInt(s));
+			s = "";
+		}
+		else {
+			s = "";
+		}
+		
+	}
+	private void buyItem(int itemIndex) {
+		
+	}
+}

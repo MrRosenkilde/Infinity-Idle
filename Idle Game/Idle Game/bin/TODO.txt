@@ -1,0 +1,3 @@
+Optimer item tooltip.
+Implementer indikation af om der kan købes upgraderinger
+balance n-antal opgraderinger prisen ( evt til item.priceFor(n).multiply(10) )

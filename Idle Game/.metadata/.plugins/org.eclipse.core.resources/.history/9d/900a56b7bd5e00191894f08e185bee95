@@ -1,0 +1,10 @@
+package presentation;
+
+import logic.Logic;
+
+public class ShortcutKeys {
+	private Logic logic;
+	public ShortcutKeys(Logic logic) {
+		this.logic = logic;
+	}
+}

@@ -1,0 +1,305 @@
+package logic;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+import domain.Item;
+import domain.ItemUpgrade;
+import domain.Purchaseable;
+import domain.ResetCurrency;
+import domain.Resource;
+import domain.ResourceType;
+import domain.Score;
+import domain.State;
+import domain.Statistics;
+import domain.Upgrade;
+import domain.globalUpgrades.AutoClicker;
+import domain.itemUpgrades.UnlockedUpgrade;
+import domain.itemUpgrades.UpgradeType;
+import exceptions.IncompatibleTierException;
+import presentation.AutoClickerThread;
+import utill.BDLib;
+import utill.BDCalc;
+
+public class Logic {
+	private State state;
+	private Statistics statistics;
+	private Calculator calculator;
+	private ItemLogicI itemLogic;
+	private PurchasingLogicI purchasingLogic;
+	private Map<Observable,ArrayList<Observer>> observerMap,tbaObserverMap,tbrObserverMap;
+	private boolean loopingObservers;
+	public Logic(State state) {
+		this.state = state;
+		this.statistics = state.statistics();
+		calculator = new Calculator();
+		this.purchasingLogic = new PurchasingLogic();
+		this.itemLogic = new ItemLogic(state,purchasingLogic);
+		this.observerMap = new HashMap<Observable,ArrayList<Observer>>();
+		this.tbaObserverMap = new HashMap<Observable,ArrayList<Observer>>();
+		this.tbrObserverMap = new HashMap<Observable,ArrayList<Observer>>();
+		loopingObservers = false;
+	}
+	
+	public void postSetup() {notifyObservers();}
+	private void notifyObservers() {
+			loopingObservers = true;
+			boolean updateAgain = false;
+			for(Observable obs : observerMap.keySet())
+				if(obs.hasChanged()) {
+					
+					for(Observer o : observerMap.get(obs)) {
+							o.update(obs,state);
+					 //should only set changed to false
+							obs.notifyObservers(state);
+					}
+				}
+			loopingObservers = false;
+			if(!tbaObserverMap.isEmpty()) {
+				for(Observable obs : tbaObserverMap.keySet())
+					for(Observer o : tbaObserverMap.get(obs))
+						addObserver(obs,o);
+				tbaObserverMap = new HashMap<Observable,ArrayList<Observer>>();
+				updateAgain =true;
+			}
+			if(!tbrObserverMap.isEmpty()) {
+				for(Observable obs : tbrObserverMap.keySet())
+					for(Observer o : tbrObserverMap.get(obs))
+						removeObserver(obs,o);
+				tbrObserverMap = new HashMap<Observable,ArrayList<Observer>>();
+				updateAgain = true;
+			}
+			if(updateAgain)
+				notifyObservers();
+	}
+	public void addObserver(Observable observable, Observer o) {
+		if(!loopingObservers) {
+			addObserver(observable,o,observerMap);	
+		}else {
+			addObserver(observable,o,tbaObserverMap);
+		}
+	}
+	public void removeObserver(Observable observable,Observer o) {
+		if(!loopingObservers) {
+			ArrayList<Observer> val = observerMap.get(observable);
+			if(val.contains(o)) {
+				val.remove(o);
+				if(val.isEmpty())
+					observerMap.remove(observable);
+			}
+		}
+		//if currently loooping add observer to "to be removed observerMap"
+		// to avoid concurrentModificationException
+		else addObserver(observable,o,tbrObserverMap); 
+	}
+	private void addObserver(Observable observable, Observer o, Map<Observable,ArrayList<Observer>> map) {
+		if(map.containsKey(observable)) 
+			map.get(observable).add(o); 
+		else {
+			ArrayList<Observer> observers = new ArrayList<Observer>();
+			observers.add(o);
+			map.put(observable, observers);
+			
+		}
+	}
+	public void BuyItem(Item i,int amount) {
+		if(tryPay(i,amount,purchasingLogic)) {
+			i.amount( i.amount() + amount );
+			if(i.amount() >= 10 && state.items().size()-1 == i.index())
+				generateItem(i.index() + 1);
+			statistics.itemsBought(
+				BDCalc.add(new BigDecimal(statistics.itemsBought()), new BigDecimal(amount)).toBigInteger()
+			 );
+			statistics.totalIncome( 
+				calculator.totalIncome( state.items().elements() ) 
+			);
+			
+			if(i.upgrades().click().amount() != 0)
+				updateClickValue();
+			updateItem(i);
+			
+			notifyObservers();
+		} 
+	}
+	public void BuyUpgrade(Upgrade u,int amount) {
+		boolean canAfford;
+		if(u.type() != UpgradeType.UNLOCKED) {
+			canAfford = tryPay(u,amount,purchasingLogic);
+		}else canAfford = tryPay(u,amount, new UnlockedPurchasingLogic((UnlockedUpgrade)u));
+		if(canAfford) {
+			u.amount( u.amount() + amount );
+			u.onUpgrade();
+			statistics.upgradesBought(
+				BDCalc.add(
+					new BigDecimal(statistics.upgradesBought()) ,
+					new BigDecimal(amount)
+				).toBigInteger()
+			);
+			updateClickValue() ;
+			if(u.type() == UpgradeType.GLOBALCLICK)
+				statistics.clickValueMultiplier( clickValueMultiplier().toBigInteger() );
+			if(u.isItemUpgrade())
+				updateItem( ((ItemUpgrade)u).item() );
+			notifyObservers();
+		}
+	}
+	private boolean tryPay(Purchaseable p, int amount,PurchasingLogicI purchasingLogic) {
+//		Resource payment = p.baseCost();
+		Resource price = purchasingLogic.priceFor(amount,p);
+		if(price.type() == ResourceType.SCORE) {
+			Score payment = (Score)price;
+			if(state.score().compareTo( payment.val() ) >= 0) {
+				state.score().subtract( payment.val() ) ;
+				return true;
+			}else return false;
+		}else {
+			ResetCurrency priceRC =(ResetCurrency)price;
+			ResetCurrency rcOwned = state.getResetCurrency(priceRC.tier());
+			if(rcOwned.val().compareTo(priceRC.val()) >= 0) {
+				rcOwned.spend(
+					BDCalc.add(rcOwned.val(), priceRC.val())
+				);
+				rcOwned.val(
+					BDCalc.subtract(rcOwned.val(), priceRC.val())
+				);
+				return true;
+			}else return false;
+		}
+				
+	}
+	public boolean purchaseable(Resource r) {
+		try {
+			if(r.type() == ResourceType.SCORE)
+				return state.score().compareTo( r.val() ) >= 0;
+			else {
+				ResetCurrency payment = (ResetCurrency)r;
+				ResetCurrency owned = state.getResetCurrency(payment.tier());
+				return owned.compareTo(payment) >= 0;
+			}
+		} catch (IncompatibleTierException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public void click() {
+		statistics.totalclicks( 
+			statistics.totalclicks().add(BigInteger.ONE) 
+		);
+		statistics.totalPointsEarnedFromClicks( 
+			BDCalc.add(
+				statistics.totalPointsEarnedFromClicks(),
+				state.clickValue().val()
+			)
+		);
+		newIncome(new Score( state.clickValue().val() ));
+	}
+	public void autoClick(int clicks) {
+		statistics.totalclicks( 
+			BDCalc.add(
+				new BigDecimal(statistics.totalclicks()),
+				new BigDecimal(clicks)
+			).toBigInteger()
+		);
+		statistics.totalPointsEarnedFromClicks(
+			BDCalc.add(
+				statistics.totalPointsEarnedFromClicks(),
+				state.clickValue().val()
+			)
+		);
+		newIncome(
+			new Score(
+				BDCalc.multiply(
+					state.clickValue().val(),
+					new BigDecimal(clicks)
+				)
+			)
+		);
+	}
+	public void updateClickValue() {
+		BigDecimal clickValueFromUpgrades = BigDecimal.ZERO;
+		for(Item i : state.items())
+			clickValueFromUpgrades = clickValueFromUpgrades.add(this.clickValueFor(i));
+		
+		state.clickValue().clickValueMultiplier( clickValueMultiplier() );
+		state.clickValue().val(
+			BDCalc.multiply(
+				BDCalc.add(
+					BDCalc.multiply(
+						clickValueFromUpgrades,
+						state.resetCurrencyMultiplier()
+					),
+					BDCalc.multiply(
+						state.clickValue().baseClickValue(),
+						state.resetCurrencyMultiplier()
+					)
+				),
+				state.clickValue().clickValueMultiplier()
+			)
+		);
+	}
+	private BigDecimal clickValueMultiplier() {
+		return BDCalc.pow(
+				BDLib.GlobalClickUpgradeMultiplier,
+				state.globalUpgrades().click().amount()
+			);
+	}
+	public void generateItem(int index) {
+		Item i = new Item(index);
+		itemLogic.itemInit(i);
+		itemLogic.updateItem(i);
+		state.AddItem(i);
+	}
+	
+	public void newIncome(Score income) {
+		state.score().add( income );
+		statistics.totalScore().add( income ) ;
+		notifyObservers();
+	}
+	public boolean purchaseAbleUpgrades(Item i) {
+		for(ItemUpgrade u : i.upgrades()) {
+			if(purchasingLogic.priceFor(1,u).val().compareTo( state.score().val() ) <= 0 && u.isUnlocked()) //if pricefor(1) <= score
+				return true;
+		}
+		return false;
+	}
+	public BigDecimal clickValueFor(Item i) {
+		return itemLogic.clickValueFrom(i);
+	}
+	public double calculateResetCurrencyProgress(int tier) {
+		ResetCurrency rcProgressingTo = state.getResetCurrency(tier);
+		BigDecimal affordableAmount = rcProgressingTo.affordableAmount(state);
+		return BDCalc.subtract(affordableAmount, affordableAmount.setScale(0, BigDecimal.ROUND_DOWN) ).doubleValue();
+	}
+	public void reset(int tier) {
+		ResetLogic rl = new ResetLogic();
+		
+		rl.generateResetCurrency(state, tier);
+		rl.resetState(state);;
+		this.generateItem(0);
+		updateClickValue();
+		statistics.totalIncome( BigDecimal.ZERO );
+		
+		if(state.resetCurrencies().get(tier+1) == null)
+			state.resetCurrencies().put(tier+1, new ResetCurrency(tier+1));
+		
+		notifyObservers();
+	}
+	public void updateItem(Item i) {
+		itemLogic.itemInit(i);
+		itemLogic.updateItem(i);
+	}
+	public PurchasingLogicI purchasingLogic() {return this.purchasingLogic;}
+	public PurchasingLogicI unlockedPurchasingLogic(UnlockedUpgrade i) {
+		return new UnlockedPurchasingLogic(i);
+	}
+	public ItemLogicI itemLogic() {return this.itemLogic;}
+	
+}
+
