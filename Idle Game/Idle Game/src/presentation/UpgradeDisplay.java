@@ -36,7 +36,6 @@ public class UpgradeDisplay extends GridPane{
 	ObservableValue<Boolean> visible;
 	private Logic logic;
 	private State state;
-	private Observer startAutoClickerThread;
 	private AutoClickerThread autoClickerThread;
 	UpgradeDisplay(Upgrade upgrade,State state,Logic logic){
 		BorderPane bp = new BorderPane();
@@ -95,17 +94,20 @@ public class UpgradeDisplay extends GridPane{
 				upgrade.notifyObservers();
 			}
 		};
-		startAutoClickerThread = (obs,obj) ->{
-			AutoClicker acUpgrade = (AutoClicker)upgrade;
-			if(autoClickerThread == null)
-				autoClickerThread = new AutoClickerThread(logic,acUpgrade);
-			if(acUpgrade.amount() > 0 && autoClickerThread.timeline().getStatus() != Status.RUNNING)
-				new AutoClickerThread(logic,acUpgrade).timeline().play();
-		};
+		if (upgrade.type() == UpgradeType.AUTOCLICKER){
+			Observer startAutoClickerThread = (obs,obj) ->{
+				AutoClicker acUpgrade = (AutoClicker)upgrade;
+				autoClickerThread = new AutoClickerThread(logic, acUpgrade);
+				autoClickerThread.timeline().play();
+				System.out.println("Started Auto Clicker Thread");
+			};
+			logic.addObserver(upgrade, startAutoClickerThread);
+			System.out.println("added autoclickerThread observer to " + upgrade);
+		}
 		
 		logic.addObserver(upgrade, upgradeObserver);
 		logic.addObserver(upgrade, buyButton);
-		if(upgrade.paymentType() == ResourceType.SCORE)
+		if(upgrade.paymentType() == ResourceType.SCORE) 
 			logic.addObserver(state.score(), buyButton);
 		else {
 			int paymentTier = ((ResetCurrency)upgrade.baseCost()).tier();
@@ -113,14 +115,11 @@ public class UpgradeDisplay extends GridPane{
 		}
 		
 		//only set visibility observer for upgrades that can be locked or unlocked
-		
 		if(upgrade.type() == UpgradeType.GLOBALCLICK ||
 				upgrade.type() == UpgradeType.UNLOCKED ||
 				upgrade.type() == UpgradeType.AUTOCLICKER){ 
 			logic.addObserver(state.statistics(),unlockedUpgradeObserver);
 		}
-		if(upgrade.type() == UpgradeType.AUTOCLICKER)
-			logic.addObserver(upgrade, startAutoClickerThread);
 		this.setVisible(upgrade.isUnlocked());
 	}
 	BuyButton buyButton() {return buyButton;}

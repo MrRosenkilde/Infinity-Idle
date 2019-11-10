@@ -1,7 +1,6 @@
 package presentation;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -11,11 +10,7 @@ import domain.ResetCurrency;
 import domain.Resource;
 import domain.ResourceType;
 import domain.Score;
-import domain.State;
-import domain.itemUpgrades.UnlockedUpgrade;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.Button;
@@ -23,11 +18,11 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import logic.Logic;
 import logic.PurchasingLogicI;
-import utill.BDLib;
 
 public class BuyButton extends Button implements Observer{
 	private Purchaseable purchaseable;
-	private IntegerProperty purchasesAmount;
+	private ObjectProperty<BigDecimal> purchasesAmount;
+	private Text purchasesAmountText;
 	private Text priceText;
 	private ObjectProperty<BuyMode> buyMode;
 	private Score score;
@@ -35,7 +30,11 @@ public class BuyButton extends Button implements Observer{
 	private Logic logic;
 	public BuyButton(Purchaseable purchaseable,BuyMode buyMode,Score score,Logic logic,PurchasingLogicI purchasingLogic) {
 		this.purchaseable = purchaseable;
-		this.purchasesAmount = new SimpleIntegerProperty(1);
+		this.purchasesAmount = new SimpleObjectProperty<BigDecimal>(BigDecimal.ONE);
+		purchasesAmountText = new Text("1");
+		purchasesAmount.addListener(ch -> {
+			purchasesAmountText.setText(Formatter.ScientificNotation(purchasesAmount.getValue()));
+		});
 		this.score = score;
 		this.purchasingLogic = purchasingLogic;
 		this.logic = logic;
@@ -43,7 +42,7 @@ public class BuyButton extends Button implements Observer{
 		priceText = new Text("");
 		this.textProperty().bind(
 				new SimpleStringProperty("buy ")
-				.concat( this.purchasesAmount.asString() )
+				.concat( purchasesAmountText.textProperty() )
 				.concat( new SimpleStringProperty(" for\n" ) )
 				.concat( priceText.textProperty() )
 			);
@@ -82,18 +81,19 @@ public class BuyButton extends Button implements Observer{
 			update(null,null);
 		});
 	}
-	private void setPurchasesAmount(int value) {
-		int max = this.purchaseable.maxPurchase();
-		int actualValue = 
-				value > max && max > 0 ?  max: value ;
-		if(value == 0)
-			this.purchasesAmount.setValue(1);
+	private void setPurchasesAmount(int desired_value) {
+		BigDecimal max = BigDecimal.valueOf( this.purchaseable.maxPurchase() );
+		BigDecimal value = BigDecimal.valueOf(desired_value);
+		BigDecimal actualValue = 
+				value.compareTo(max) > 0 && max.compareTo(BigDecimal.ZERO) > 0 ?  max : value ;
+		if(value.compareTo(BigDecimal.ZERO) == 0)
+			this.purchasesAmount.setValue(BigDecimal.ONE);
 		else this.purchasesAmount.setValue(actualValue);
 	}
 	public Purchaseable purchases() {return purchaseable;}
 	public Text priceText() {return priceText;}
-	public int purchasesAmount() {return purchasesAmount.get();}
-	public void purchasesAmount(int amount) { this.purchasesAmount.setValue(amount); }
+	public int purchasesAmount() {return purchasesAmount.get().intValue();}
+	public void purchasesAmount(int amount) { this.purchasesAmount.set(BigDecimal.valueOf(amount)); }
 	public ObjectProperty<BuyMode> BuyModeProperty() {return buyMode;}
 	@Override
 	public void update(Observable arg0, Object arg1) {
@@ -107,7 +107,7 @@ public class BuyButton extends Button implements Observer{
 		priceText.setText(
 			Formatter.ScientificNotation( 
 				purchasingLogic.priceFor(
-					BuyButton.this.purchasesAmount.getValue(),
+					purchasesAmount.getValue().intValue(),
 					BuyButton.this.purchaseable 
 				).val() 
 			) + " " + paymentSpecification
@@ -116,7 +116,7 @@ public class BuyButton extends Button implements Observer{
 	private void updateBuyMax() {
 		int purchaseAbleAmount = this.purchasingLogic.affordableAmount(score.val(),this.purchaseable).intValue();
 		if(purchaseAbleAmount > 0 ) {
-			if(purchaseAbleAmount != this.purchasesAmount.get()) { //only change value if it's different
+			if(purchaseAbleAmount != this.purchasesAmount.get().intValue() ) { //only change value if it's different
 				setPurchasesAmount(purchaseAbleAmount);
 			}
 		}

@@ -69,7 +69,7 @@ public class Presentation {
 		this.itemPane = new ScrollPane(itemGrid);
 		this.globalUpgradesScrollPane = new ScrollPane();
 		this.upgradesScrollPane = new UpgradesScrollPane();
-		this.statisticDisplay = new StatisticDisplay(state.statistics(),logic);
+		this.statisticDisplay = new StatisticDisplay(state,logic);
 		this.buyMode = new SimpleObjectProperty<BuyMode>(BuyMode.ONE);
 		clickValue = new Text(Formatter.ScientificNotation(state.clickValue().val()));
 		UpgradesBorderPane globalUpgrades = 
@@ -90,8 +90,6 @@ public class Presentation {
 		score.setId("score");
 		scoreArea.setAlignment(Pos.CENTER);
 		clickButton.setAlignment(Pos.TOP_LEFT);
-		centerTop.setStyle("-fx-border-color: #f00; -fx-border-width:1px");
-		center.setStyle("-fx-border-color: #f00; -fx-border-width:1px");
 		centerTop.setMinWidth(100);
 //		primaryStage.setMinHeight(800);
 //		primaryStage.setMinWidth(1200);

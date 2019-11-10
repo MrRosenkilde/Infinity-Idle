@@ -2,6 +2,8 @@ package domain;
 
 import java.util.Iterator;
 
+import domain.globalUpgrades.AutoClicker;
+import domain.globalUpgrades.GlobalClickUpgrade;
 import domain.globalUpgrades.GlobalUpgradeFactory;
 import utill.GlobalUpgradeIterator;
 
@@ -17,8 +19,8 @@ public class GlobalUpgrades implements Iterable<GlobalUpgrade>{
 	public GlobalUpgrades(GlobalUpgrade[] upgrades) {
 		this.upgrades = upgrades;
 	}
-	public GlobalUpgrade click() {return upgrades[0];}
-	public GlobalUpgrade AutoClicker() {return upgrades[1];}
+	public GlobalClickUpgrade clickUpgrade() {return (GlobalClickUpgrade) upgrades[0];}
+	public AutoClicker AutoClicker() {return (AutoClicker) upgrades[1];}
 	@Override
 	public Iterator<GlobalUpgrade> iterator() {
 		return new GlobalUpgradeIterator(upgrades);

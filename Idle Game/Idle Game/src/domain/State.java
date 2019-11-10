@@ -7,7 +7,7 @@ import java.util.Map;
 
 import domain.globalUpgrades.GlobalUpgradeFactory;
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 import utill.ObservableList;
 public class State{
 	private ObservableList<Item> items;
@@ -19,7 +19,7 @@ public class State{
 	private BuyMode buyMode;
 	public  State() {
 		items = new ObservableList<Item>();
-		this.score = new Score(BigDecimal.ZERO); //starting at 0.0000001 is a dirty fix to some rounding bugs
+		this.score = new Score(BDConstants.MILLION); //starting at 0.0000001 is a dirty fix to some rounding bugs
 		this.clickValue = new ClickValue(BigDecimal.ONE);
 		this.statistics = new Statistics();
 		this.buyMode = BuyMode.ONE;
@@ -45,7 +45,7 @@ public class State{
 		return BDCalc.add(
 			BigDecimal.ONE,
 			BDCalc.multiply(
-				BDLib.ResetCurrencyMultiplier,
+				BDConstants.ResetCurrencyMultiplier,
 				resetCurrencies.get(0).val()
 			)
 		);

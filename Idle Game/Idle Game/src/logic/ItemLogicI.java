@@ -22,5 +22,6 @@ public interface ItemLogicI {
 	public BigDecimal incomePrSecondPrItem(Item i);
 	public BigDecimal priceFor1IncomePrSecond(Item i);
 	public BigDecimal clickValueFrom(Item i);
+	public BigDecimal incomePrCycle(Item i);
 	public void updateItem(Item item);
 }

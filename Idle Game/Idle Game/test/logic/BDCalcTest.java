@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import presentation.Formatter;
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 class BDCalcTest {
 	@Test

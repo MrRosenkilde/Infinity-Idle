@@ -7,7 +7,7 @@ import domain.Item;
 import domain.Score;
 import domain.State;
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class ItemLogic implements ItemLogicI {
 	private State state;
@@ -24,15 +24,19 @@ public class ItemLogic implements ItemLogicI {
 	}
 	@Override
 	public BigDecimal cost(Item i) {
+		BigDecimal baseCost = i.baseCost().val();
+		BigDecimal baseCostMultiplier = baseCostMultiplier(i);
+		BigDecimal priceIncrease = priceIncrease(i);
+		int amount = i.amount();
 		return BDCalc.multiply
 				(
 					BDCalc.multiply(
-						i.baseCost().val(),
-						baseCostMultiplier(i)
+						baseCost,
+						baseCostMultiplier
 					),
 					BDCalc.pow(
-						percentagePriceIncrease(i),
-						i.amount()+1
+						priceIncrease,
+						amount
 					)
 				);
 	}
@@ -41,7 +45,7 @@ public class ItemLogic implements ItemLogicI {
 		//5 percent decrease multiplicatively pr price upgrade
 		return BDCalc.pow 
 				(
-					BDLib.priceUpgradeMultiplier,
+					BDConstants.priceUpgradeMultiplier,
 					i.upgrades().price().amount()
 				);
 	}
@@ -50,47 +54,44 @@ public class ItemLogic implements ItemLogicI {
 	public Score income(Item i) {
 		//calculate baseIncome with multipliers, then multiply with amount of items
 		return new Score(
-					BDCalc.multiply(
-						BDCalc.multiply(
-								i.baseIncome().val(),
-								baseIncomeMultiplier(i)
-							),
-						new BigDecimal(i.amount())
-					)
-				);
+			BDCalc.multiply(
+				incomePrCycle(i),
+				BigDecimal.valueOf(i.amount())
+			)
+		);
 	}
 
 
 
 	@Override
 	public BigDecimal baseIncomeMultiplier(Item i) {
-		BigDecimal withincomeUpgradeMultiplier = BDCalc.multiply(BigDecimal.ONE,incomeUpgradeMultiplier(i) );
-		BigDecimal withResetCurrencyMultiplier = BDCalc.multiply(withincomeUpgradeMultiplier, state.resetCurrencyMultiplier());
-		BigDecimal withUnlockedUpgradeMultiplier = BDCalc.multiply(withResetCurrencyMultiplier, unlockedUpgradeMultiplier(i));
-		return withUnlockedUpgradeMultiplier;
+		BigDecimal incomeUpgradeMultiplier = BDCalc.multiply(BigDecimal.ONE,incomeUpgradeMultiplier(i) );
+		BigDecimal resetCurrencyMultiplier = state.resetCurrencyMultiplier();
+		BigDecimal unlockedUpgradeMultiplier = unlockedUpgradeMultiplier(i);
+		return BDCalc.multiply(incomeUpgradeMultiplier, BDCalc.multiply( resetCurrencyMultiplier,unlockedUpgradeMultiplier));
 	}
 
 	@Override
 	public BigDecimal priceIncrease(Item i) {
-		return new BigDecimal(1.10).add( new BigDecimal(i.index()).divide(BDLib.HUNDRED) );
+		//1.10 + (item_index / 100)
+		// item 1 -> 1.11 & item 2 -> 1.12 and so on
+		return BDConstants.ItemPriceIncrease.add( BigDecimal.valueOf( i.index()).divide(BDConstants.HUNDRED) );
 	}
 
 	@Override
 	public BigDecimal percentagePriceIncrease(Item i) {
-		
 		return BDCalc.subtract(
-				BDCalc.multiply(priceIncrease(i), BDLib.HUNDRED),
-				BDLib.HUNDRED 
+				BDCalc.multiply(priceIncrease(i), BDConstants.HUNDRED),
+				BDConstants.HUNDRED 
 			);
 	}
 
 	@Override
 	public BigDecimal speedMultiplier(Item i) {
 		return BDCalc.pow(
-				BDLib.SpeedUpgradeMultiplier,
+				BDConstants.SpeedUpgradeMultiplier,
 				i.upgrades().speed().amount()
 			);
-		
 	}
 
 	@Override
@@ -99,51 +100,52 @@ public class ItemLogic implements ItemLogicI {
 	}
 	@Override
 	public BigDecimal incomePrSecond(Item i) {
-		//income / incomeinterval = income pr ms, because incomeInterval is in ms
-		//multiply that with 1000 to get income pr second
 		return BDCalc.multiply(
-				BDCalc.divide(
-					income(i).val(),
-					i.baseIncomeInterval()
-			    ),
-				BDLib.THOUSAND);
+				income(i).val(),
+				this.speedMultiplier(i)
+		    );
 	}
 
 	@Override
 	public BigDecimal incomePrSecondPrItem(Item i) {
 		//calculated by taking incomePrSecond and dividing it with amount of items
-		if(i.amount() !=  0)
-			return BDCalc.divide(
-						incomePrSecond(i),
-						new BigDecimal(i.amount())
-					);
-		else return BigDecimal.ZERO;
+		BigDecimal baseIncome = BDCalc.multiply(i.baseIncome().val(), baseIncomeMultiplier(i));
+		BigDecimal speedMultiplier = speedMultiplier(i);
+		return BDCalc.multiply(baseIncome,speedMultiplier);
 	}
 
 	@Override
 	public BigDecimal priceFor1IncomePrSecond(Item i) {
-		//Cost / income = cost for 1 income
-		if(i.amount() != 0)
-			return BDCalc.divide(cost(i), income(i).val());
-		else return cost(i);
+		//Cost * 1 / incomePrSecondPrItem = cost for 1 income
+		BigDecimal neededItems = BDCalc.divide(
+				BigDecimal.ONE,
+				incomePrSecondPrItem(i)
+			);
+		BigDecimal cost = cost(i);
+		return BDCalc.multiply( cost, neededItems );
 	}
 	private BigDecimal incomeUpgradeMultiplier(Item i) {
-		return BDLib.IncomeUpgradeMultiplier.pow(i.upgrades().income().amount(),MathContext.DECIMAL64);
+		return BDConstants.IncomeUpgradeMultiplier.pow(i.upgrades().income().amount(),MathContext.DECIMAL64);
 	}
 	private BigDecimal unlockedUpgradeMultiplier(Item i) {
-		return BDLib.UnlockedUpgradeMultiplier.pow(i.upgrades().unlocked().amount(),MathContext.DECIMAL64);
+		return BDConstants.UnlockedUpgradeMultiplier.pow(i.upgrades().unlocked().amount(),MathContext.DECIMAL64);
 	}
 	
 	@Override
 	public BigDecimal clickValueFrom(Item i) {
-		BigDecimal clickValueFromUpgrades = BigDecimal.ZERO;
-		clickValueFromUpgrades = 
-		BDCalc.add(clickValueFromUpgrades,
-			BDCalc.multiply(
-				BDCalc.multiply(i.income().val(), BDLib.ItemClickUpgradeMultiplier),
-				new BigDecimal(i.upgrades().click().amount())
-			)
-		);
-		return clickValueFromUpgrades.setScale(5,BigDecimal.ROUND_HALF_EVEN);
+		return BDCalc.multiply(
+				i.income().val(),
+				BDCalc.multiply(
+					BDConstants.ItemClickUpgradeMultiplier,
+					new BigDecimal(i.upgrades().click().amount())
+				)
+			);
+	}
+	@Override
+	public BigDecimal incomePrCycle(Item i) {
+		return BDCalc.multiply(
+				i.baseIncome().val(),
+				baseIncomeMultiplier(i)
+			);
 	}
 }

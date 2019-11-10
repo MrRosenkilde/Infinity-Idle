@@ -15,23 +15,33 @@ import logic.Logic;
  * */
 public class AutoClickerThread {
 	private Timeline timeLine;
-	IntegerProperty t = new SimpleIntegerProperty();;
+	private AutoClicker autoClicker;
 
+	IntegerProperty t = new SimpleIntegerProperty();;
 	public AutoClickerThread(Logic logic, AutoClicker ac) {
 		double cycleInMS = 1000;
+		this.autoClicker = ac;
 		this.timeLine = new Timeline(
+				
 			new KeyFrame(
 				Duration.millis(cycleInMS),
 				new KeyValue(t, 1)
 			)
 		);
 		timeLine.setOnFinished(e -> {
-			logic.autoClick(10 * ac.amount());
+			logic.click( ac.clicksPrSecondPrUpgrade() * ac.amount() );
 			timeLine.playFromStart();
 		});
 	}
 
 	public Timeline timeline() {
 		return timeLine;
+	}
+	public AutoClicker getAutoClicker() {
+		return autoClicker;
+	}
+	
+	public void setAutoClicker(AutoClicker autoClicker) {
+		this.autoClicker = autoClicker;
 	}
 }

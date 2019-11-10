@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import junit.framework.TestCase;
 import presentation.Formatter;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class ResetCurrencyTest extends TestCase {
 	

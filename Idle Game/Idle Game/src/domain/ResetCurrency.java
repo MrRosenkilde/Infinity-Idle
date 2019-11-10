@@ -5,7 +5,7 @@ import java.math.MathContext;
 
 import exceptions.IncompatibleTierException;
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class ResetCurrency extends Resource{
 	private int tier;
@@ -24,7 +24,7 @@ public class ResetCurrency extends Resource{
 	public int tier() {return tier;}
 	public BigDecimal spend() {return this.spend;}
 	public void spend(BigDecimal spend) {this.spend = spend;}
-	public BigDecimal baseCost() {return BDLib.TRILLION;}
+	public BigDecimal baseCost() {return BDConstants.TRILLION;}
 	public void subtract(ResetCurrency rc) throws IncompatibleTierException{
 		if(rc.tier() != this.tier() ) throwIncomepatibleTierException(rc);
 		else this.val(

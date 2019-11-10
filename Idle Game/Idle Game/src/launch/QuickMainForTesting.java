@@ -5,7 +5,7 @@ import java.math.MathContext;
 import java.util.Random;
 
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class QuickMainForTesting {
 	public static void main(String[] args) {

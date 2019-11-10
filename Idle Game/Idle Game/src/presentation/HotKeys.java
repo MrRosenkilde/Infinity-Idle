@@ -22,10 +22,6 @@ public class HotKeys implements EventHandler<KeyEvent>{
 	}
 	@Override
 	public void handle(KeyEvent event) {
-		System.out.println("Code = " + event.getCode());
-		System.out.println("text = " + event.getText());
-		System.out.println("Unicode = " + event.getCharacter());
-		System.out.println(event.isControlDown());
 		if(event.isShiftDown()) {
 			System.out.println("shift is down");
 			if(event.getText().matches("[0-9]"))

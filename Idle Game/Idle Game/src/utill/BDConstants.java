@@ -8,8 +8,7 @@ import java.math.MathContext;
   
 */
 
-public class BDLib {
-	
+public class BDConstants {
 	public static final BigDecimal THREE = new BigDecimal(3);
 	public static final BigDecimal TWENTYFIVE = new BigDecimal(25);
 	public static final BigDecimal FIFTY = new BigDecimal(50);
@@ -30,5 +29,6 @@ public class BDLib {
 	public static final BigDecimal POW_LIMIT = new BigDecimal(1789560);
 	public static final BigDecimal MAX_VALUE = BigDecimal.TEN.pow(POW_LIMIT.intValue(),MathContext.DECIMAL32).pow(1200,MathContext.DECIMAL32);
 	public static final BigDecimal DOUBLE_MAX_VALUE = new BigDecimal(Double.MAX_VALUE);
+	public static final BigDecimal ItemPriceIncrease = new BigDecimal(1.10);
 	
 }

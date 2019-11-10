@@ -28,44 +28,45 @@ public class ItemProgressBar extends ProgressBar
 	private InvalidationListener progressListener;
 	private EventHandler<ActionEvent> onFinished;
 	private ObservableBigDecimal multiplier;
-	public ItemProgressBar(Item i,Score score, Logic logic) {
-		double cycleInMS = i.incomeInterval().doubleValue();
-		this.i = i;
+	public ItemProgressBar(Item item,Score score, Logic logic) {
+		double cycleInMS = item.incomeInterval().doubleValue();
+		this.i = item;
 		multiplier = new ObservableBigDecimal(BigDecimal.ONE);
 		this.endFrame = new KeyFrame(Duration.millis(cycleInMS),new KeyValue(this.progressProperty(),1) );
 
-		this.setProgress( i.progress() );
+		this.setProgress( item.progress() );
 		this.timeLine = new Timeline();
 		speedObserver = (obs,obj) ->{
-			if(i.speedMultiplier().compareTo(multiplier.multiply(BigDecimal.TEN) ) >= 0)
+			//if item 
+			if(item.speedMultiplier().compareTo(multiplier.multiply(BigDecimal.TEN) ) >= 0)
 				multiplier.val(
 					multiplier.multiply(
 						BDCalc.pow(
 							BigDecimal.TEN,
-							BDCalc.log10(i.speedMultiplier())
+							BDCalc.log10(item.speedMultiplier())
 							.setScale(0, BigDecimal.ROUND_DOWN)
 							.intValue() -
 							BDCalc.log10(multiplier.val())
 							.setScale(0, BigDecimal.ROUND_DOWN)
 							.intValue()
 						) 
-					)
+					).setScale(0)
 				);
-			timeLine.setRate( (i.speedMultiplier().divide(multiplier.val(),2,BigDecimal.ROUND_DOWN)).doubleValue());
-			//don't allow the animation to go under 1 ms
+			timeLine.setRate( (item.speedMultiplier().divide(multiplier.val(),0,BigDecimal.ROUND_DOWN)).doubleValue() );
+			
 		};
 		progressListener = c ->{
-			i.progress( this.progressProperty().getValue() );
+			item.progress( this.progressProperty().getValue() );
 		};
 		onFinished = e -> {
-			logic.newIncome(new Score(i.income().multiply(multiplier.val())) );
+			logic.newIncome(new Score(item.income() .val() ) );
 			timeLine.playFromStart();
 		};
 		this.timeLine = new Timeline(
 			new KeyFrame(Duration.millis(0),new KeyValue(this.progressProperty(),0)),
 			endFrame
 		);
-		logic.addObserver(i.upgrades().speed(), speedObserver);
+		logic.addObserver(item.upgrades().speed(), speedObserver);
 		this.progressProperty().addListener(progressListener);
 		timeLine.setOnFinished(onFinished);
 	}

@@ -5,7 +5,7 @@ import java.math.MathContext;
 import java.util.Random;
 
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class BDCalcBenchmark {
 	private BDCalcBenchmark(){
@@ -83,7 +83,7 @@ public class BDCalcBenchmark {
 	public static void randomisedBDCalcBenchmark() {
 		
 		Benchmark bm = new Benchmark("avg of 1 million random sqrt's of big numbers");
-		BigDecimal bd = BDLib.DOUBLE_MAX_VALUE;
+		BigDecimal bd = BDConstants.DOUBLE_MAX_VALUE;
 		
 		for(int i = 0;i<100;i++) {
 			Random r = new Random();

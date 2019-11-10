@@ -6,7 +6,7 @@ import java.util.Observable;
 
 import logic.ItemLogicI;
 import utill.BDCalc;
-import utill.BDLib;
+import utill.BDConstants;
 
 public class Item extends Observable implements Purchaseable{
 	private BigDecimal incomeInterval,
@@ -30,7 +30,7 @@ public class Item extends Observable implements Purchaseable{
 		this.progress = 0;
 		this.speedMultiplier = BigDecimal.ONE;
 		income = new Score(BigDecimal.ZERO);
-		this.priceIncrease = new BigDecimal(1.10).add(new BigDecimal(index).divide(BDLib.HUNDRED) );
+		this.priceIncrease = new BigDecimal(1.10).add(new BigDecimal(index).divide(BDConstants.HUNDRED) );
 		name = "Item " + (index +1);
 		this.upgrades = new ItemUpgrades(this);
 		this.basePrice = baseCost(index);
@@ -61,11 +61,11 @@ public class Item extends Observable implements Purchaseable{
 					new BigDecimal(i.index() +1),
 					BDCalc.divide(
 						new BigDecimal(i.index()),
-						BDLib.TWO
+						BDConstants.TWO
 					)
 					.add(BigDecimal.ONE)
 				), 
-				BDLib.THOUSAND );
+				BDConstants.THOUSAND );
 	}
 	public void incomeInterval(BigDecimal incomeInterval) {this.incomeInterval = incomeInterval;setChanged();}
 	public void amount(int amount) {this.amount = amount;setChanged();}

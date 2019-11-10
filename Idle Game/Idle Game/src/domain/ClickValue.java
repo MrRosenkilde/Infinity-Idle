@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 
 import domain.globalUpgrades.GlobalClickUpgrade;
-import utill.BDLib;
+import utill.BDConstants;
 import utill.ObservableBigDecimal;
 
 public class ClickValue extends ObservableBigDecimal{

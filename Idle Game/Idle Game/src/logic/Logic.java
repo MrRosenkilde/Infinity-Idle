@@ -25,7 +25,7 @@ import domain.itemUpgrades.UnlockedUpgrade;
 import domain.itemUpgrades.UpgradeType;
 import exceptions.IncompatibleTierException;
 import presentation.AutoClickerThread;
-import utill.BDLib;
+import utill.BDConstants;
 import utill.BDCalc;
 
 public class Logic {
@@ -62,14 +62,14 @@ public class Logic {
 					}
 				}
 			loopingObservers = false;
-			if(!tbaObserverMap.isEmpty()) {
+			if(!tbaObserverMap.isEmpty()) { // to be added observer map
 				for(Observable obs : tbaObserverMap.keySet())
 					for(Observer o : tbaObserverMap.get(obs))
 						addObserver(obs,o);
 				tbaObserverMap = new HashMap<Observable,ArrayList<Observer>>();
 				updateAgain =true;
 			}
-			if(!tbrObserverMap.isEmpty()) {
+			if(!tbrObserverMap.isEmpty()) { // to be removed observer map
 				for(Observable obs : tbrObserverMap.keySet())
 					for(Observer o : tbrObserverMap.get(obs))
 						removeObserver(obs,o);
@@ -87,6 +87,8 @@ public class Logic {
 		}
 	}
 	public void removeObserver(Observable observable,Observer o) {
+		//if currently loooping add observer to "to be removed observerMap"
+		// to avoid concurrentModificationException
 		if(!loopingObservers) {
 			ArrayList<Observer> val = observerMap.get(observable);
 			if(val.contains(o)) {
@@ -95,8 +97,6 @@ public class Logic {
 					observerMap.remove(observable);
 			}
 		}
-		//if currently loooping add observer to "to be removed observerMap"
-		// to avoid concurrentModificationException
 		else addObserver(observable,o,tbrObserverMap); 
 	}
 	private void addObserver(Observable observable, Observer o, Map<Observable,ArrayList<Observer>> map) {
@@ -113,12 +113,13 @@ public class Logic {
 		if(tryPay(i,amount,purchasingLogic)) {
 			i.amount( i.amount() + amount );
 			if(i.amount() >= 10 && state.items().size()-1 == i.index())
-				generateItem(i.index() + 1);
+				generateItem(i.index() + 1);//unlock next item if player has reached more then 10 of their highest item.
 			statistics.itemsBought(
 				BDCalc.add(new BigDecimal(statistics.itemsBought()), new BigDecimal(amount)).toBigInteger()
 			 );
 			statistics.totalIncome( 
-				calculator.totalIncome( state.items().elements(),itemLogic ) 
+				calculator.totalIncomePrSecond( state.items().elements(), itemLogic )
+				.add(calculator.incomeFromAutoCLicker(state))
 			);
 			
 			if(i.upgrades().click().amount() != 0)
@@ -145,8 +146,14 @@ public class Logic {
 			updateClickValue() ;
 			if(u.type() == UpgradeType.GLOBALCLICK)
 				statistics.clickValueMultiplier( clickValueMultiplier().toBigInteger() );
-			if(u.isItemUpgrade())
+			if(u.isItemUpgrade()) {
 				itemLogic.updateItem( ((ItemUpgrade)u).item() );
+				statistics.totalIncome( 
+					calculator.totalIncomePrSecond(state.items().elements(), itemLogic)
+					.add(calculator.incomeFromAutoCLicker(state))
+				);
+			}
+			System.out.println("Purchased upgrade: " + u);
 			notifyObservers();
 		}
 	}
@@ -189,18 +196,9 @@ public class Logic {
 		}
 	}
 	public void click() {
-		statistics.totalclicks( 
-			statistics.totalclicks().add(BigInteger.ONE) 
-		);
-		statistics.totalPointsEarnedFromClicks( 
-			BDCalc.add(
-				statistics.totalPointsEarnedFromClicks(),
-				state.clickValue().val()
-			)
-		);
-		newIncome(new Score( state.clickValue().val() ));
+		click(1);
 	}
-	public void autoClick(int clicks) {
+	public void click(int clicks) {
 		statistics.totalclicks( 
 			BDCalc.add(
 				new BigDecimal(statistics.totalclicks()),
@@ -226,7 +224,6 @@ public class Logic {
 		BigDecimal clickValueFromUpgrades = BigDecimal.ZERO;
 		for(Item i : state.items())
 			clickValueFromUpgrades = clickValueFromUpgrades.add(itemLogic.clickValueFrom(i));
-		
 		state.clickValue().clickValueMultiplier( clickValueMultiplier() );
 		state.clickValue().val(
 			BDCalc.multiply(
@@ -246,8 +243,8 @@ public class Logic {
 	}
 	private BigDecimal clickValueMultiplier() {
 		return BDCalc.pow(
-				BDLib.GlobalClickUpgradeMultiplier,
-				state.globalUpgrades().click().amount()
+				BDConstants.GlobalClickUpgradeMultiplier,
+				state.globalUpgrades().clickUpgrade().amount()
 			);
 	}
 	public void generateItem(int index) {
@@ -257,9 +254,14 @@ public class Logic {
 	}
 	
 	public void newIncome(Score income) {
-		state.score().add( income.multiply(BigDecimal.TEN.pow(12000,MathContext.DECIMAL32) ));
-		statistics.totalScore().add( income .multiply(BigDecimal.TEN.pow(12000,MathContext.DECIMAL32) )) ;
-		statistics.totalScoreThisReset().add( income.val() .multiply(BigDecimal.TEN.pow(12000,MathContext.DECIMAL32) ));
+		Score[] addTo = new Score[] {
+			state.score(),
+			statistics.totalScore(),
+			statistics.totalScoreThisReset() 
+		};
+		for(Score s : addTo)
+			//s.add( income.val().multiply(BigDecimal.TEN.pow(100,MathContext.DECIMAL32)) );
+			s.add( income.val() );
 		notifyObservers();
 	}
 	public boolean purchaseAbleUpgrades(Item i) {
@@ -275,7 +277,9 @@ public class Logic {
 		if(affordableAmount.compareTo(BigDecimal.ZERO) > 0)
 			return  BDCalc.subtract(affordableAmount, affordableAmount.setScale(0, BigDecimal.ROUND_DOWN) ).doubleValue();
 		Resource payment = tier == 0 ? state.statistics().totalScoreThisReset() : state.getResetCurrency(tier -1);
-		return BDCalc.divide( payment.val(), rcProgressingTo.priceFor(BigDecimal.ONE).val() ) .doubleValue() ;
+		if(payment.val().compareTo(BigDecimal.ZERO) != 0)
+				return BDCalc.divide( payment.val(), rcProgressingTo.priceFor(BigDecimal.ONE).val() ) .doubleValue() ;
+		else return 0D;
 	}
 	public void reset(int tier) {
 		ResetLogic rl = new ResetLogic();

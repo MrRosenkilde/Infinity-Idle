@@ -53,7 +53,6 @@ public class BDCalc {
 	public static BigDecimal nrt(BigDecimal bd,int root) {
 		if(bd.compareTo(BigDecimal.valueOf(Double.MAX_VALUE)) < 0) //if number is smaller then double_max_value it's faster to use the usual math library
 			return new BigDecimal( Math.pow(bd.doubleValue(), 1D / (double)root ));
-		
 		BigDecimal in = bd;
 		int digits = bd.precision() - bd.scale() -1; //take digits to get the numbers power of ten
 		in = in.scaleByPowerOfTen (- (digits - digits%root) ); //scale down to the lowest number with it's power of ten mod root is the same as initial number
@@ -83,14 +82,14 @@ public class BDCalc {
 		return 1;
 	}
 	public static BigDecimal random() {
-		return BDCalc.multiply(BDLib.MAX_VALUE, BigDecimal.valueOf(new Random().nextDouble() + 0.00000001D) );
+		return BDCalc.multiply(BDConstants.MAX_VALUE, BigDecimal.valueOf(new Random().nextDouble() + 0.00000001D) );
 	}
-	public static BigDecimal pow(BigDecimal bd, float power) {
-		int rt = (int) (1D / ( power - ((long)power) )); // 1 divided by decimals in power
-		int i = (int)power; //take the real number part of power
-		return bd.pow(i).multiply(nrt(bd,rt));
-				
-	}
+//	public static BigDecimal pow(BigDecimal bd, float power) {
+//		int rt = (int) (1D / ( power - ((long)power) )); // 1 divided by decimals in power
+//		int i = (int)power; //take the real number part of power
+//		return bd.pow(i).multiply(nrt(bd,rt));
+//				
+//	}
 	
 //			BDCalc.multiply(
 //				pow(bd, i ),

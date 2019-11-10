@@ -23,9 +23,7 @@ public class ObservableList<T> extends Observable implements Iterable<T>{
 		}
 		setChanged();
 	}
-//	public T[] toArray() {
-//		return (T[])elements.toArray();
-//	}
+
 	public boolean hasElement(T element) {
 		return elements.contains(element);
 	}

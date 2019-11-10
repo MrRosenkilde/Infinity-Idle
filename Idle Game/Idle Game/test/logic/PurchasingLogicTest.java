@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import domain.Item;
 import domain.State;
-import utill.BDLib;
+import utill.BDConstants;
 
 class PurchasingLogicTest {
 
@@ -26,7 +26,7 @@ class PurchasingLogicTest {
 		State state = new State();
 		Logic logic = new Logic(state);
 		logic.itemLogic().updateItem(item);
-		state.score().add(BDLib.HUNDRED);
+		state.score().add(BDConstants.HUNDRED);
 		int affordable = logic.purchasingLogic().affordableAmount(state.score().val(), item).intValue();
 		for(int i = 0;i<affordable;i++) {
 			logic.BuyItem(item, 1);
