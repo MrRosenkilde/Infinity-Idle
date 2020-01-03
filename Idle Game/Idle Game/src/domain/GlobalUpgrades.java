@@ -28,6 +28,9 @@ public class GlobalUpgrades implements Iterable<GlobalUpgrade>{
 	public GlobalUpgrade[] all() {
 		return upgrades;
 	}
+	public void clickUpgrade(GlobalClickUpgrade upgrade) {
+		upgrades[0] = upgrade;
+	}
 	
 	
 }

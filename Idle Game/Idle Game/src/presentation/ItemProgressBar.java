@@ -1,12 +1,10 @@
 package presentation;
 
 import java.math.BigDecimal;
-import java.util.Observable;
 import java.util.Observer;
 
 import domain.Item;
 import domain.Score;
-import domain.State;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;

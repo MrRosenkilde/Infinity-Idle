@@ -51,7 +51,7 @@ public class StatisticDisplay extends GridPane implements Observer {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		totalIncome.setText(Formatter.ScientificNotation(stats.totalIncome() ) + " /s");
+		totalIncome.setText(Formatter.ScientificNotation(stats.totalIncomePrSecond() ) + " /s");
 		itemsPurchased.setText(Formatter.ScientificNotation(stats.itemsBought()));
 		upgradesPurchased.setText(Formatter.ScientificNotation(stats.upgradesBought()));
 		totalClicks.setText(Formatter.ScientificNotation(stats.totalclicks()));

@@ -1,6 +1,6 @@
 package logic;
 
-public class Benchmark {
+public class Benchmark extends Thread{
 	private long startTime;
 	private String title;
 	private FunctionI function;
@@ -24,6 +24,7 @@ public class Benchmark {
 	
 	public void setResult() {this.result = System.currentTimeMillis() - startTime;}
 	public long getResult() {return result == 0? System.currentTimeMillis() - startTime : this.result;}
+	@Override
 	public void run() {
 		start();
 		function.doSomething();

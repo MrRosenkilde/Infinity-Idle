@@ -13,12 +13,12 @@ public class ItemIterator implements Iterator<ItemUpgrade>{
 	}
 	@Override
 	public boolean hasNext() {
-		return pointer<4;
+		return pointer<upgrades.length;
 	}
 
 	@Override
 	public ItemUpgrade next() {
-		return upgrades[++pointer];
+		return upgrades[pointer++];
 	}
 	
 }

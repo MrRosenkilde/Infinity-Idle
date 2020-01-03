@@ -18,7 +18,7 @@ public class GlobalUpgradeIterator implements Iterator<GlobalUpgrade>{
 
 	@Override
 	public GlobalUpgrade next() {
-		return upgrades[++pointer];
+		return upgrades[pointer++];
 	}
 
 }

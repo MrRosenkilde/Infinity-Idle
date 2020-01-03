@@ -11,6 +11,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import domain.Item;
+import domain.ItemI;
 import domain.ItemUpgrade;
 import domain.Purchaseable;
 import domain.ResetCurrency;
@@ -41,24 +42,28 @@ public class Logic {
 		this.statistics = state.statistics();
 		calculator = new Calculator();
 		this.purchasingLogic = new PurchasingLogic();
-		this.itemLogic = new ItemLogic(state,purchasingLogic);
+		this.itemLogic = new ItemLogic(state);
 		this.observerMap = new HashMap<Observable,ArrayList<Observer>>();
 		this.tbaObserverMap = new HashMap<Observable,ArrayList<Observer>>();
 		this.tbrObserverMap = new HashMap<Observable,ArrayList<Observer>>();
 		loopingObservers = false;
 	}
-	
+	public Item newItem(int index) {
+		Item item = new Item(index);
+		itemLogic.updateItem(item);
+		
+		return item;
+	}
 	public void postSetup() {notifyObservers();}
 	private void notifyObservers() {
 			loopingObservers = true;
 			boolean updateAgain = false;
 			for(Observable obs : observerMap.keySet())
-				if(obs.hasChanged()) {
-					
+				if(obs.hasChanged()) {	
 					for(Observer o : observerMap.get(obs)) {
 							o.update(obs,state);
-					 //should only set changed to false
-							obs.notifyObservers(state);
+							//should only set changed to false
+							obs.notifyObservers();
 					}
 				}
 			loopingObservers = false;
@@ -76,8 +81,7 @@ public class Logic {
 				tbrObserverMap = new HashMap<Observable,ArrayList<Observer>>();
 				updateAgain = true;
 			}
-			if(updateAgain)
-				notifyObservers();
+			if(updateAgain) notifyObservers();
 	}
 	public void addObserver(Observable observable, Observer o) {
 		if(!loopingObservers) {
@@ -117,14 +121,13 @@ public class Logic {
 			statistics.itemsBought(
 				BDCalc.add(new BigDecimal(statistics.itemsBought()), new BigDecimal(amount)).toBigInteger()
 			 );
-			statistics.totalIncome( 
+			statistics.totalIncomePrSecond( 
 				calculator.totalIncomePrSecond( state.items().elements(), itemLogic )
 				.add(calculator.incomeFromAutoCLicker(state))
 			);
-			
+			itemLogic.updateItem(i);
 			if(i.upgrades().click().amount() != 0)
 				updateClickValue();
-			itemLogic.updateItem(i);
 			
 			notifyObservers();
 		} 
@@ -143,16 +146,19 @@ public class Logic {
 					new BigDecimal(amount)
 				).toBigInteger()
 			);
-			updateClickValue() ;
 			if(u.type() == UpgradeType.GLOBALCLICK)
-				statistics.clickValueMultiplier( clickValueMultiplier().toBigInteger() );
+				statistics.clickValueMultiplier(
+					BDConstants.GlobalClickUpgradeMultiplier
+						.pow(state.globalUpgrades().clickUpgrade().amount()).toBigInteger() 
+				);
 			if(u.isItemUpgrade()) {
 				itemLogic.updateItem( ((ItemUpgrade)u).item() );
-				statistics.totalIncome( 
+				statistics.totalIncomePrSecond( 
 					calculator.totalIncomePrSecond(state.items().elements(), itemLogic)
 					.add(calculator.incomeFromAutoCLicker(state))
 				);
 			}
+			updateClickValue();
 			System.out.println("Purchased upgrade: " + u);
 			notifyObservers();
 		}
@@ -221,31 +227,14 @@ public class Logic {
 		);
 	}
 	public void updateClickValue() {
-		BigDecimal clickValueFromUpgrades = BigDecimal.ZERO;
+		BigDecimal clickValue =
+				BDConstants.GlobalClickUpgradeMultiplier
+					.pow(state.globalUpgrades().clickUpgrade().amount()
+				).multiply(state.resetCurrencyMultiplier());
 		for(Item i : state.items())
-			clickValueFromUpgrades = clickValueFromUpgrades.add(itemLogic.clickValueFrom(i));
-		state.clickValue().clickValueMultiplier( clickValueMultiplier() );
-		state.clickValue().val(
-			BDCalc.multiply(
-				BDCalc.add(
-					BDCalc.multiply(
-						clickValueFromUpgrades,
-						state.resetCurrencyMultiplier()
-					),
-					BDCalc.multiply(
-						state.clickValue().baseClickValue(),
-						state.resetCurrencyMultiplier()
-					)
-				),
-				state.clickValue().clickValueMultiplier()
-			)
-		);
-	}
-	private BigDecimal clickValueMultiplier() {
-		return BDCalc.pow(
-				BDConstants.GlobalClickUpgradeMultiplier,
-				state.globalUpgrades().clickUpgrade().amount()
-			);
+			clickValue = 
+					clickValue.add(itemLogic.clickValueFrom(i));
+		state.clickValue().val(clickValue);
 	}
 	public void generateItem(int index) {
 		Item i = new Item(index);
@@ -260,7 +249,6 @@ public class Logic {
 			statistics.totalScoreThisReset() 
 		};
 		for(Score s : addTo)
-			//s.add( income.val().multiply(BigDecimal.TEN.pow(100,MathContext.DECIMAL32)) );
 			s.add( income.val() );
 		notifyObservers();
 	}
@@ -288,7 +276,7 @@ public class Logic {
 		rl.resetState(state);;
 		this.generateItem(0);
 		updateClickValue();
-		statistics.totalIncome( BigDecimal.ZERO );
+		statistics.totalIncomePrSecond( BigDecimal.ZERO );
 		statistics.totalScoreThisReset().val(BigDecimal.ZERO);
 		if(state.resetCurrencies().get(tier+1) == null)
 			state.resetCurrencies().put(tier+1, new ResetCurrency(tier+1));
@@ -303,6 +291,11 @@ public class Logic {
 		return new UnlockedPurchasingLogic(i);
 	}
 	public ItemLogicI itemLogic() {return this.itemLogic;}
+	public State state() {return this.state;}
+	public void itemLogic(ItemLogic itemLogic) {
+		this.itemLogic = itemLogic;
+		
+	}
 	
 }
 

@@ -1,5 +1,8 @@
 /logic/
-/presentation/
-/utill/
+/testSuite/
 /domain/
 /launch/
+/presentation/
+/utill/
+/data/
+/exceptions/

@@ -24,14 +24,12 @@ public class UnlockedPurchasingLogic implements PurchasingLogicI{
 			throw new IllegalArgumentException("newAmount must be positive");
 		Score cost = new Score(BigDecimal.ZERO);
 		for(int i = upgradeAmount; i<upgrade.amount()+newAmount;i++) {
-			cost.val( 
-				BDCalc.add(
-					cost.val(), 
-					itemPurchasingLogic.priceForAbsolute(
-						upgrade.milestoneFor(i),
-						upgrade.item() 
-					).val()
-				)
+			cost.val(  
+				itemPurchasingLogic.priceForAbsolute(
+					upgrade.milestoneFor(i),
+					upgrade.item() 
+				).val()
+		
 			);
 			
 		}

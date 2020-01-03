@@ -19,13 +19,14 @@ public class State{
 	private BuyMode buyMode;
 	public  State() {
 		items = new ObservableList<Item>();
-		this.score = new Score(BDConstants.MILLION); //starting at 0.0000001 is a dirty fix to some rounding bugs
+		this.score = new Score(BigDecimal.ZERO); //starting at 0.0000001 is a dirty fix to some rounding bugs
 		this.clickValue = new ClickValue(BigDecimal.ONE);
 		this.statistics = new Statistics();
 		this.buyMode = BuyMode.ONE;
 		globalUpgrades = new GlobalUpgrades(this);
 		resetCurrencies = new HashMap<Integer,ResetCurrency>();
 		resetCurrencies.put(0,new ResetCurrency(0));
+//		resetCurrencies.get(0).val(BigDecimal.ZERO);
 	}
 	public ObservableList<Item> items() { return items; }
 	public GlobalUpgrades globalUpgrades() {return globalUpgrades;}
@@ -36,6 +37,7 @@ public class State{
  	public BuyMode buyMode() {return buyMode;}
  	public void buyMode(BuyMode buyMode) {this.buyMode = buyMode;}
 	public ClickValue clickValue() {return clickValue; }
+	public void clickValue(ClickValue val) {this.clickValue = val;}
 	public void AddItem(Item i) { items.add(i); }
 	public Map<Integer,ResetCurrency> resetCurrencies(){return resetCurrencies;}
 	public ResetCurrency getResetCurrency(int tier) {

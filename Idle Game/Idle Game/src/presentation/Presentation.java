@@ -10,6 +10,7 @@ import data.Savefile;
 import domain.BuyMode;
 import domain.GlobalUpgrade;
 import domain.Item;
+import domain.ItemI;
 import domain.ItemUpgrade;
 import domain.State;
 import domain.Upgrade;
@@ -167,7 +168,7 @@ public class Presentation {
 		});
 		buyMode.setValue(state.buyMode() );
 		
-//		addAdminSliders();
+		addAdminSliders();
 	}
 	public ResetCurrencyDisplay resetCurrencyDisplay() {return resetCurrencyDisplay;}
 	public boolean isUpgradesBeingDisplayed(){ return upgradesScrollPane.getContent() != null;}

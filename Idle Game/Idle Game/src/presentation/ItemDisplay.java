@@ -86,7 +86,6 @@ public class ItemDisplay extends GridPane implements Observer {
 
 		buyButton.setOnMouseClicked(e -> {
 			logic.BuyItem(item, buyButton.purchasesAmount());
-
 		});
 		info.setOnMouseEntered(e -> {
 			info.setTooltip(new HackedTooltip(tooltipText(item, logic.itemLogic())));
@@ -185,9 +184,8 @@ public class ItemDisplay extends GridPane implements Observer {
 	}
 
 	private String tooltipText(Item i, ItemLogicI logic) {
-		
 		String incomePrCycle = "income / cycle / item \n"
-				+ Formatter.ScientificNotation(logic.incomePrCycle(i)) 
+				+ Formatter.ScientificNotation(logic.incomePrItem(i)) 
 				+ "\n";
 		String incomePrSecond = "Income /s\n" + Formatter.ScientificNotation(logic.incomePrSecond(i)) + "\n";
 		String incomePrSecondPrItem = "Income /s / item\n" + Formatter.ScientificNotation(logic.incomePrSecondPrItem(i))

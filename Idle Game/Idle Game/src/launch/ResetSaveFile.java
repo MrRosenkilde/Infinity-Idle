@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 import data.Savefile;
 import domain.Item;
+import domain.ItemI;
 import domain.ItemUpgrades;
 import domain.State;
 import logic.Logic;

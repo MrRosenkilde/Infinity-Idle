@@ -8,14 +8,14 @@ import logic.ItemLogicI;
 import utill.BDCalc;
 import utill.BDConstants;
 
-public class Item extends Observable implements Purchaseable{
+public class Item extends Observable implements ItemI{
 	private BigDecimal incomeInterval,
 		baseIncomeInterval,
 		basePrice,
 		speedMultiplier,
 		priceIncrease;
-	public static BigDecimal priceScale = new BigDecimal(10),
-		incomeScale = new BigDecimal(5),
+	public static BigDecimal priceScale = new BigDecimal(5),
+		incomeScale = new BigDecimal(10),
 		priceBase = new BigDecimal(10),
 		incomeBase = new BigDecimal(0.1);
 	public Resource income,baseIncome;
@@ -67,6 +67,7 @@ public class Item extends Observable implements Purchaseable{
 				), 
 				BDConstants.THOUSAND );
 	}
+	//setters
 	public void incomeInterval(BigDecimal incomeInterval) {this.incomeInterval = incomeInterval;setChanged();}
 	public void amount(int amount) {this.amount = amount;setChanged();}
 	public void upgrades(ItemUpgrades upgrades) {this.upgrades = upgrades;setChanged();}
@@ -79,18 +80,22 @@ public class Item extends Observable implements Purchaseable{
 	public void priceIncrease(BigDecimal priceIncrease) {this.priceIncrease = priceIncrease;setChanged();}
 	public void income(BigDecimal income) {this.income.val( income); setChanged();}
 	public void income(Resource income) {this.income = income; setChanged();}
-	public BigDecimal priceIncrease() {return this.priceIncrease;}
+
+	//getters
 	public BigDecimal incomeInterval() {return this.incomeInterval;}
 	public ItemUpgrades upgrades() {return this.upgrades;}
 	public BigDecimal speedMultiplier() {return this.speedMultiplier;}
 	public String name() {return this.name;}
 	public Resource baseIncome() {return this.baseIncome;}
+	public BigDecimal basePrice() {return this.basePrice;}
 	public BigDecimal baseIncomeInterval() {return this.baseIncomeInterval;}
 	public Resource income() {return this.income;}
 	public double progress() {return this.progress;}
 	public int index() {return this.index;}
 
 	//purchaseable interface
+	@Override
+	public BigDecimal priceIncrease() {return this.priceIncrease;}
 	@Override
 	public Resource baseCost() {return new Score(this.basePrice);}
 	@Override

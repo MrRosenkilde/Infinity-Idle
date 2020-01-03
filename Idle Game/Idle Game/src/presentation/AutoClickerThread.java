@@ -22,7 +22,6 @@ public class AutoClickerThread {
 		double cycleInMS = 1000;
 		this.autoClicker = ac;
 		this.timeLine = new Timeline(
-				
 			new KeyFrame(
 				Duration.millis(cycleInMS),
 				new KeyValue(t, 1)

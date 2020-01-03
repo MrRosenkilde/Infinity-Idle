@@ -19,9 +19,9 @@ public class BDConstants {
 	public static final BigDecimal SpeedUpgradeMultiplier = new BigDecimal(1.10);
 	public static final BigDecimal priceUpgradeMultiplier = new BigDecimal(0.95);
 	public static final BigDecimal UnlockedUpgradeMultiplier = new BigDecimal(3);
-	public static final BigDecimal GlobalClickUpgradeMultiplier = new BigDecimal(2);
-	public static final BigDecimal ItemClickUpgradeMultiplier = new BigDecimal(0.001); // 0,1%
-	public static final BigDecimal ResetCurrencyMultiplier = new BigDecimal(0.02);
+	public static final BigDecimal GlobalClickUpgradeMultiplier = BigDecimal.valueOf( 2 );
+	public static final BigDecimal ItemClickUpgradeMultiplier = BigDecimal.valueOf(0.001); // 0,1%
+	public static final BigDecimal ResetCurrencyMultiplier = BigDecimal.valueOf(0.02);
 	public static final BigDecimal MILLION = BigDecimal.TEN.pow(6);
 	public static final BigDecimal TWO = new BigDecimal(2);
 	public static final BigDecimal THOUSAND = new BigDecimal(1000);

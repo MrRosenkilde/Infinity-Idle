@@ -106,12 +106,12 @@ public class BDCalcBenchmark {
 					+ "\n in " +  runtime + "ms");
 		}
 	}
-	private static boolean prime(int n) {
-		for(int i = 2; i<n;i++) {
-			if(n % i == 0) {
-				return false;
-			}
-		}
-		return true;
-	}
+//	private static boolean prime(int n) {
+//		for(int i = 2; i<n;i++) {
+//			if(n % i == 0) {
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
 }

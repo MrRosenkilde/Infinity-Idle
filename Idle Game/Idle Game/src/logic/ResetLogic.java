@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import domain.Item;
+import domain.ItemI;
 import domain.ResetCurrency;
 import domain.Resource;
 import domain.State;

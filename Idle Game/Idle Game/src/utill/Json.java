@@ -9,6 +9,7 @@ import domain.BuyMode;
 import domain.GlobalUpgrade;
 import domain.GlobalUpgrades;
 import domain.Item;
+import domain.ItemI;
 import domain.ItemUpgrade;
 import domain.ItemUpgrades;
 import domain.State;
@@ -92,7 +93,7 @@ public class Json {
 	
 	public JSONObject toJson(Statistics s) {
 		JSONObject statisticsJson = new JSONObject();
-		statisticsJson.put("totalIncome", s.totalIncome());
+		statisticsJson.put("totalIncome", s.totalIncomePrSecond());
 		statisticsJson.put("totalScore", s.totalScore().val());
 		statisticsJson.put("itemsBought", s.itemsBought());
 		statisticsJson.put("totalClicks", s.totalclicks());
@@ -103,7 +104,7 @@ public class Json {
 	}
 	public Statistics StatisticsFromJson(JSONObject statsJson) {
 		Statistics stats = new Statistics();
-		stats.totalIncome( statsJson.getBigDecimal( "totalIncome" ));
+		stats.totalIncomePrSecond( statsJson.getBigDecimal( "totalIncome" ));
 		stats.totalScore().val( statsJson.getBigDecimal("totalScore") );
 		stats.itemsBought( statsJson.getBigInteger("itemsBought") );
 		stats.totalclicks( statsJson.getBigInteger( "totalClicks" ));
