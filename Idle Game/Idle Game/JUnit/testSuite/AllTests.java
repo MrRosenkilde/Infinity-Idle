@@ -23,22 +23,5 @@ import test.java.featureFiles.CucumberTestRunner;
 	CucumberTestRunner.class
 })
 public class AllTests {
-	
-	
-	@Test
-	public void add_2_and_2_equals_4 () {
-		//arrange
-		int x = 2;
-		int y = 2;
-		int expected = 4;
-		//act
-		int actual = x + y;
-		//assert
-		assertEquals(expected,actual);
-	}
-
-
-
-
 
 }
